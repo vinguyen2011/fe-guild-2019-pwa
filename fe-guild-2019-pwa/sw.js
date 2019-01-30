@@ -1,4 +1,6 @@
-const CACHE_STATIC_NAME = 'static';
+const CACHE_STATIC_NAME = 'static_v1';
+const CACHE_DYNAMIC_NAME = 'dynamic_v1';
+
 const URLS_TO_PRECACHE = [
     '/',
     'sw.js',
@@ -31,11 +33,23 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   console.log('[Service Worker] Activating Service Worker ...', event);
-  return self.clients.claim();
-});
 
-// Add a new cache for dynamic content
-const CACHE_DYNAMIC_NAME = 'dynamic';
+  event.waitUntil(
+        caches.keys()
+            .then(cacheNames => {
+                return Promise.all(cacheNames.map(cacheName => {
+                    if (cacheName !== CACHE_STATIC_NAME && cacheName !== CACHE_DYNAMIC_NAME) {
+                        console.log('[Service Worker] Removing old cache.', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                }));
+            })
+            .then(() => {
+                console.log('[ServiceWorker] Claiming clients');
+                return self.clients.claim();
+            })
+    );
+});
 
 self.addEventListener('fetch', event => {
   console.log('[Service Worker] Fetching something ....', event);
