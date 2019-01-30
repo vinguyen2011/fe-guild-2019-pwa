@@ -34,6 +34,9 @@ self.addEventListener('activate', event => {
   return self.clients.claim();
 });
 
+// Add a new cache for dynamic content
+const CACHE_DYNAMIC_NAME = 'dynamic';
+
 self.addEventListener('fetch', event => {
   console.log('[Service Worker] Fetching something ....', event);
 
