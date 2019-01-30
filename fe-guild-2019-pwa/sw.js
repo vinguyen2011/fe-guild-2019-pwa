@@ -1,9 +1,10 @@
-const CACHE_STATIC_NAME = 'static_v1';
+const CACHE_STATIC_NAME = 'static_v2';
 const CACHE_DYNAMIC_NAME = 'dynamic_v1';
 
 const URLS_TO_PRECACHE = [
     '/',
     'sw.js',
+    'offline.html',
     'index.html',
     'src/js/app.js',
     'src/js/feed.js',
@@ -13,7 +14,7 @@ const URLS_TO_PRECACHE = [
     'src/images/main-image.jpg',
     'https://fonts.googleapis.com/css?family=Roboto:400,700',
     'https://fonts.googleapis.com/icon?family=Material+Icons',
-    // 'https://code.getmdl.io/1.3.0/material.indigo-deep_orange.min.css"'
+    // 'https://code.getmdl.io/1.3.0/material.indigo-deep_orange.min.css'
 ];
 
 self.addEventListener('install', event => {
@@ -85,6 +86,13 @@ self.addEventListener('fetch', event => {
                         return response;
                     })
             })
-            .catch(error => console.log('[Service Worker] Dynamic cache error.', error))
+            .catch(error => {
+              return caches.open(CACHE_STATIC_NAME)
+                .then(cache => {
+                  if (event.request.headers.get('accept').includes('text/html')) {
+                    return cache.match('/fe-guild-2019-pwa/offline.html');
+                  }
+                });
+            })
     );
 });
