@@ -45,7 +45,29 @@ self.addEventListener('fetch', event => {
                     return response;
                 }
 
-                return fetch(event.request);
+                // Clone the request - a request is a stream and can be only consumed once
+                const requestToCache = event.request.clone();
+
+                // Try to make the original HTTP request as intended
+                return fetch(requestToCache)
+                    .then(response => {
+                        // If request fails or server responds with an error code, return that error immediately
+                        if (!response || response.status !== 200) {
+                            return response;
+                        }
+
+                        // Again clone the response because you need to add it into the cache and because it's used
+                        // for the final return response
+                        const responseToCache = response.clone();
+
+                        caches.open(CACHE_DYNAMIC_NAME)
+                            .then(cache => {
+                                cache.put(requestToCache, responseToCache);
+                            });
+
+                        return response;
+                    })
             })
+            .catch(error => console.log('[Service Worker] Dynamic cache error.', error))
     );
 });
